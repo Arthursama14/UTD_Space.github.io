@@ -1,0 +1,162 @@
+---
+title: "Untitled"
+format: html
+---
+```{r}
+library(reticulate)
+py_config()
+#py_install("jupyter")
+#py_install("pyyaml")
+#py_install("matplotlib")
+```
+
+```{python}
+# Import matplotlib
+import matplotlib.pyplot as plt
+
+# Sample data
+x = [1, 2, 3, 4, 5]
+y = [2, 4, 6, 8, 10]
+
+# Create the plot
+plt.plot(x, y, marker='o', linestyle='-', color='blue')
+
+# Add labels and title
+plt.title("Simple Line Plot in RStudio (Python)")
+plt.xlabel("X-axis")
+plt.ylabel("Y-axis")
+
+# Show the plot
+plt.show()
+
+
+```
+```{python}
+import matplotlib.pyplot as plt
+import random
+
+# --------------------------------------------------------------
+# TIME PARSER (supports 12.30, 13.5, 8.15, etc.)
+# --------------------------------------------------------------
+def parse_time(t):
+    """Converts many common time formats into decimal hours."""
+    t = t.strip()
+
+    # "1:30", "13:45"
+    if ":" in t:
+        hours, mins = t.split(":")
+        return int(hours) + (int(mins) / 60)
+
+    # "1.30" meaning 1 hour 30 minutes
+    if "." in t:
+        hours, mins = t.split(".")
+        return int(hours) + (int(mins) / 60)
+
+    # "7", "14" meaning exact hours
+    return float(t)
+
+
+# --------------------------------------------------------------
+# USER INPUT (replace input() with hard-coded examples for notebook)
+# --------------------------------------------------------------
+
+# Example courses; replace these with your own if desired
+courses = [
+    ("Math", parse_time("9.00"), parse_time("10.30")),
+    ("CS", parse_time("11.00"), parse_time("12.15")),
+    ("History", parse_time("13:00"), parse_time("14:30"))
+]
+
+# --------------------------------------------------------------
+# FICTIONAL EVENT GENERATION
+# --------------------------------------------------------------
+
+fictional_events_pool = [
+    "Knitting Workshop",
+    "Meditation Session",
+    "Study Hall",
+    "CS Office Hours",
+    "Math Tutoring",
+    "Relaxation Guild",
+    "Mindfulness Circle"
+]
+
+# Determine free time blocks
+free_blocks = []
+sorted_courses = sorted(courses, key=lambda c: c[1])
+
+prev_end = 0
+for name, start, end in sorted_courses:
+    if start > prev_end:
+        free_blocks.append((prev_end, start))
+    prev_end = end
+
+if prev_end < 24:
+    free_blocks.append((prev_end, 24))
+
+# Create fictional events in free blocks
+fictional_events = []
+for block in free_blocks:
+    block_start, block_end = block
+    if block_end - block_start >= 0.5:
+        event_name = random.choice(fictional_events_pool)
+        event_start = block_start + 0.1
+        event_end = event_start + min(1, block_end - block_start - 0.2)
+        fictional_events.append((event_name, event_start, event_end))
+
+
+# --------------------------------------------------------------
+# VISUALIZATION
+# --------------------------------------------------------------
+
+fig, ax = plt.subplots(figsize=(14, 5))
+
+# Plot course blocks
+colors = plt.cm.tab20.colors
+for i, (name, start, end) in enumerate(courses):
+    ax.barh("Schedule", end - start, left=start, color=colors[i % len(colors)],
+            edgecolor="black", label=name)
+
+# Plot fictional events (dotted)
+for i, (name, start, end) in enumerate(fictional_events):
+    ax.barh("Schedule", end - start, left=start,
+            fill=False, edgecolor=colors[(i+5) % len(colors)],
+            linewidth=2, linestyle="dotted", label=f"{name} (Suggested)")
+
+
+# --------------------------------------------------------------
+# GRIDLINES (hour = dark, 30 min = light)
+# --------------------------------------------------------------
+
+# Dark hour lines
+for hour in range(0, 25):
+    ax.axvline(hour, color="black", linewidth=1.2, alpha=0.7)
+
+# 30-minute light lines
+for hour in range(0, 24):
+    ax.axvline(hour + 0.5, color="gray", linestyle="--", linewidth=0.5, alpha=0.5)
+
+
+# Formatting
+ax.set_xlim(0, 24)
+ax.set_xlabel("Time (24-hour clock)")
+ax.set_title("Daily Schedule")
+ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
+
+# Custom ticks every hour
+ax.set_xticks([i for i in range(25)])
+ax.grid(False)
+
+plt.tight_layout()
+plt.show()
+
+# --------------------------------------------------------------
+# PRINT EVENTS IN NOTEBOOK
+# --------------------------------------------------------------
+
+print("\nSuggested Events:")
+for name, start, end in fictional_events:
+    print(f"- {name}: {start:.2f} to {end:.2f}")
+
+```
+
